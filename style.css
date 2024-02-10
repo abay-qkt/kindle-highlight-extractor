@@ -1,0 +1,15 @@
+#parent{
+    text-align: center;
+}
+th,td{
+    text-align: left;
+    padding-top: 10px; /* 上部のパディング */
+    padding-bottom: 10px; /* 下部のパディング */
+    padding-right: 20px; 
+}
+table{
+    display: inline-block; /* または inline-table */
+    width: 100%;       /* テーブルの幅を親要素に合わせて調整 */
+    min-width: 500px;  /* テーブルの最小幅を500pxに設定 */
+    max-width: 60vw;   /* テーブルの最大幅をビューポートの80%に設定 */
+}

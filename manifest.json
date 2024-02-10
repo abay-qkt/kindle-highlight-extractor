@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Kindle Highlight Extractor",
+  "version": "1.0",
+  "description": "Extracts highlights from Kindle read.amazon.co.jp/notebook",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://read.amazon.co.jp/notebook*"
+  ],
+  "icons": {
+    "16": "icon/icon16x16.png",
+    "48": "icon/icon48x48.png",
+    "128": "icon/icon128x128.png"
+  },
+  "action": {
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://read.amazon.co.jp/notebook*"],
+      "js": ["content.js"],
+      "css": ["style.css","loading.css"],
+      "run_at": "document_end"
+    }
+  ]
+}
