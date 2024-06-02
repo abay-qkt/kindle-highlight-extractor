@@ -3,18 +3,25 @@ const queryParams = new URLSearchParams(window.location.search);
 const asin = queryParams.get('asin');
 
 function getHighLight(doc){
-    // ハイライトの数を数える
-    let hl_len = doc.getElementsByClassName("kp-notebook-highlight").length;
-
     // 各ハイライトの情報を抽出
     let hl_array = [];
-    for (i = 0; i < hl_len; i++) {
+
+    let highlight_list = doc.getElementsByClassName("a-row a-spacing-base")
+    for (let highlight of highlight_list) {
         let hl_dict = {}
-        hl_dict["text"] = doc.getElementsByClassName("kp-notebook-highlight")[i].firstChild.innerHTML;
-        hl_dict["num"] = doc.querySelectorAll('[id="kp-annotation-location"]')[i].value; // 本来idは重複するものではないから邪道
-        hl_dict["note"] = document.querySelectorAll('[id="note"]')[i].innerText; // 本来idは重複するものではないから邪道
-        hl_dict["color"] = doc.getElementsByClassName("kp-notebook-highlight")[i].classList[3].split("-")[3];
-        hl_array.push(hl_dict);
+        number_element = highlight.querySelector("#kp-annotation-location");
+        if(number_element){ // この要素を持っていたらハイライトの要素とみなす。(初回レスポンスの最初の要素だけハイライトではなかった)
+            text_element = highlight.querySelector("#highlight");
+            if(text_element){ 
+                hl_dict["text"] = text_element.innerHTML;
+            }else {
+                hl_dict["text"] = "<表示不可>" // 画像をハイライトした場合id='highlight'の要素は出現しない
+            }
+            hl_dict["num"] = number_element.value;
+            hl_dict["note"] = highlight.querySelector("#note").innerHTML;
+            hl_dict["color"] = highlight.querySelectorAll('[id^="highlight\-"]')[0].classList[3].split("-")[3];        
+            hl_array.push(hl_dict);
+        }
     }
     return hl_array
 }
