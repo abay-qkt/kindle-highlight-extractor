@@ -5,7 +5,7 @@ const asin = queryParams.get('asin');
 function getHighLight(doc){
     // ハイライトの数を数える
     let hl_len = doc.getElementsByClassName("kp-notebook-highlight").length;
-    
+
     // 各ハイライトの情報を抽出
     let hl_array = [];
     for (i = 0; i < hl_len; i++) {
@@ -15,7 +15,7 @@ function getHighLight(doc){
         hl_dict["note"] = document.querySelectorAll('[id="note"]')[i].innerText; // 本来idは重複するものではないから邪道
         hl_dict["color"] = doc.getElementsByClassName("kp-notebook-highlight")[i].classList[3].split("-")[3];
         hl_array.push(hl_dict);
-    }    
+    }
     return hl_array
 }
 
@@ -24,26 +24,28 @@ function populateTable(data) {
     let table = document.getElementById('myTable').getElementsByTagName('tbody')[0];
     data.forEach(rowData => {
         let row = table.insertRow();
+        
+        let cell_color = row.insertCell();
+        let cell_num = row.insertCell();
+        let cell_text = row.insertCell();
+        let cell_note = row.insertCell();
 
-        // 1列目
-        let cell0 = row.insertCell();
         let num =  rowData["num"];
         let customUrlScheme = `kindle://book?action=open&asin=${asin}&location=${num}`;
         let link = `<a href="${customUrlScheme}">${num}</a>`
-        cell0.innerHTML = link;
+        cell_num.innerHTML = link;
 
-        // 2列目
-        let cell1 = row.insertCell();
-        cell1.textContent = rowData["text"];
-        cell1.className = "text-content"; // 折り返し用のクラスを追加
+        cell_text.textContent = rowData["text"];
+        cell_text.className = "text-content"; // 折り返し用のクラスを追加
 
-        // 3列目
-        let cell2 = row.insertCell();
-        cell2.textContent = rowData["note"];
-        cell2.className = "text-content"; // 折り返し用のクラスを追加
+        cell_note.textContent = rowData["note"];
+        cell_note.className = "text-content"; // 折り返し用のクラスを追加
+
+        cell_color.textContent = rowData["color"];
+        cell_color.className = "text-content"; // 折り返し用のクラスを追加
 
         // 背景色を設定
-        cell0.style.backgroundColor = rowData["color"];
+        cell_color.style.backgroundColor = rowData["color"];
     });
 }
 
@@ -89,6 +91,7 @@ function rewriteHtml(hlArray){
         <table id="myTable">
             <thead>
                 <tr>
+                    <th>Color</th>
                     <th>No.</th>
                     <th>Text</th>
                     <th>Memo</th>
@@ -107,10 +110,10 @@ function rewriteHtml(hlArray){
 async function fetchSequentially(initialUrl,hlArray) {
     try {
         const parser = new DOMParser();
-        
+
         let currentUrl = initialUrl;
         let count = 0;
-        
+
         while (currentUrl && count<20) {
             const response = await fetch(currentUrl);
             if (!response.ok) {
@@ -121,12 +124,12 @@ async function fetchSequentially(initialUrl,hlArray) {
 
             newHlArray = getHighLight(doc)
             hlArray=hlArray.concat(newHlArray)
-            
+
             // 次のURLをresultから決定する。URLがない場合はループを終了する。
             currentUrl = getNexUrl(doc);
             count++;
         }
-        
+
         rewriteHtml(hlArray)
     } catch (error) {
         console.error('Fetch error:', error);
@@ -139,8 +142,3 @@ if(asin){ // パラメータとしたasinが与えられている場合のみ実
     const initialUrl = getNexUrl(document)
     fetchSequentially(initialUrl,hlArray);
 }
-
-
-
-
-
