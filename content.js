@@ -11,6 +11,12 @@ let colorSettings = {
     default: "black" // デフォルトは黒に変更
 };
 
+// インデントの対象となる色 (デフォルトは "blue")
+let indentTargetColor = "blue";
+
+// インデントモードがアクティブかどうか (デフォルトは true)
+let isIndentModeActive = true;
+
 // 色の設定を変更する関数
 function changeColorSetting(colorName, textColor, hlArray) {
     colorSettings[colorName] = textColor;
@@ -78,19 +84,32 @@ function populateList(data) {
 
     // リスト全体のスタイルを調整する
     list.style.listStyleType = "disc"; // デフォルトの箇条書きマークを表示
-    list.style.textAlign = "left"; // 左寄せ
-    list.style.paddingLeft = "20px"; // 左側に余白を追加して見やすくする
 
-    data.forEach(rowData => {
+    let subList = null; // サブリスト用の<ul>要素を初期化
+    let isSubList = false // 現在の行がsubListに当てはまるかどうか
+    data.forEach((rowData) => {
+        // 色判定
+        let isTargetHighlight = rowData["color"] === indentTargetColor; // 現在の行がインデント対象色かどうか
+        //最上位層(青)でかつ、すでにsubListが作成されてる場合、subListを初期化する。
+        if (isIndentModeActive && isTargetHighlight && subList) {
+            subList = null; // サブリストを初期化
+            isSubList = false; // subListに属さない
+        }
+        //最上位層(青)でないかつ、subListが作成されてない場合はsubListを作成する。
+        if(isIndentModeActive && !isTargetHighlight && !subList){
+            subList = document.createElement('ul'); // サブリストを作成する。
+            list.appendChild(subList);
+            isSubList = true;
+        }
         let listItem = document.createElement('li');
         let textElement = document.createElement('span');
         textElement.textContent = rowData["text"];
 
         // 設定に基づいて文字色を設定する
-        if(colorSettings[rowData["color"]]){
-          textElement.style.color = colorSettings[rowData["color"]];
-        }else{
-          textElement.style.color = colorSettings.default;
+        if (colorSettings[rowData["color"]]) {
+            textElement.style.color = colorSettings[rowData["color"]];
+        } else {
+            textElement.style.color = colorSettings.default;
         }
 
         listItem.appendChild(textElement);
@@ -98,7 +117,7 @@ function populateList(data) {
         if (rowData["note"]) {
             let noteList = document.createElement('ul'); // メモを箇条書きにするための <ul> 要素
             noteList.style.listStyleType = "circle"; // メモの箇条書きマークをcircleに変更
-            noteList.style.marginLeft = "40px"; // インデントをさらに下げる
+            noteList.style.marginLeft = "40px"; // メモのインデント
             noteList.style.marginTop = "5px"; // 上に少し余白を作る
             let noteArray = rowData["note"].split("。");
             noteArray.forEach(noteText => {
@@ -114,7 +133,17 @@ function populateList(data) {
 
         listItem.style.marginBottom = "5px"; // マージンを小さくする
         listItem.style.padding = "10px";
-        list.appendChild(listItem);
+        if (subList && isSubList) {
+            //subListが作成済みであれば、subListに追加する。
+            subList.appendChild(listItem);
+        }else{
+            list.appendChild(listItem);
+        }
+        //最上位層で、subListが作成されていたら、subListを初期化する。
+        if (isIndentModeActive && isTargetHighlight && subList && !isSubList) {
+            subList = null; // サブリストを初期化
+        }
+
     });
 }
 
@@ -151,11 +180,20 @@ function setLoadingModal() {
     `
     document.body.insertAdjacentHTML('afterbegin', loadingModal);
 }
-// HTMLをテーブルで上書き
-function rewriteHtmlTable(hlArray) {
-    let tblString = `
-    <div id="parent">
+
+// HTMLを上書きする関数
+function rewriteHtml(hlArray, mode) {
+    let buttonString;
+    let selectArea;
+    let contentString;
+
+    if (mode === 'table') {
+        buttonString = `
+        <div id="buttonArea">
         <button id="changeViewButton">箇条書き表示へ</button>
+        </div>`;
+        selectArea = ''; // テーブル表示時はプルダウンなし
+        contentString = `
         <table id="myTable">
             <thead>
                 <tr>
@@ -168,18 +206,24 @@ function rewriteHtmlTable(hlArray) {
             <tbody>
             </tbody>
         </table>
-    </div>
-    `
-    document.body.innerHTML = tblString
-    populateTable(hlArray)
-    document.getElementById("changeViewButton").addEventListener("click", function () { rewriteHtmlList(hlArray) });
-}
-
-// HTMLを箇条書きで上書き
-function rewriteHtmlList(hlArray) {
-    let listString = `
-    <div id="parent">
+        `;
+    } else if (mode === 'list') {
+        buttonString = `
+        <div id="buttonArea">
         <button id="changeViewButton">テーブル表示へ</button>
+        <button id="changeIndentModeButton">${isIndentModeActive ? "インデント無効" : "インデント有効"}</button>
+        </div>
+        `;
+        selectArea = `
+        <div id="indentTargetColorArea">
+        <label for="indentTargetColorSelect">インデント対象色:</label>
+        <select id="indentTargetColorSelect">
+            <option value="pink">Pink</option>
+            <option value="blue" selected>Blue</option>
+            <option value="yellow">Yellow</option>
+            <option value="orange">Orange</option>
+        </select>
+        </div>
         <div id="colorSettingArea">
             <label for="pinkColorSelect">Pink:</label>
             <select id="pinkColorSelect">
@@ -210,28 +254,59 @@ function rewriteHtmlList(hlArray) {
                 <option value="orange" selected>orange</option>
             </select>
         </div>
-        <ul id="myList">
-        </ul>
+        `;
+        contentString = `<ul id="myList"></ul>`;
+    }
+
+    let parentString = `
+    <div id="parent">
+        ${buttonString}
+        ${selectArea}
+        ${contentString}
     </div>
     `;
+    document.body.innerHTML = parentString;
+    if (mode === 'table') {
+        populateTable(hlArray);
+    } else if (mode === 'list') {
+        populateList(hlArray);
+    }
+    document.getElementById("changeViewButton").addEventListener("click", function () {
+        if(mode === 'table'){
+            rewriteHtml(hlArray, 'list')
+        }else{
+            rewriteHtml(hlArray, 'table')
+        }
+    });
 
-    document.body.innerHTML = listString;
-    populateList(hlArray);
-    document.getElementById("changeViewButton").addEventListener("click", function () { rewriteHtmlTable(hlArray) });
+    // プルダウンメニューのイベントリスナーを設定する(リストモードの時のみイベント設定)
+    if (mode === 'list') {
+        document.getElementById("pinkColorSelect").addEventListener("change", function () {
+            changeColorSetting("pink", this.value, hlArray);
+        });
+        document.getElementById("blueColorSelect").addEventListener("change", function () {
+            changeColorSetting("blue", this.value, hlArray);
+        });
+        document.getElementById("yellowColorSelect").addEventListener("change", function () {
+            changeColorSetting("yellow", this.value, hlArray);
+        });
+        document.getElementById("orangeColorSelect").addEventListener("change", function () {
+            changeColorSetting("orange", this.value, hlArray);
+        });
 
-    // プルダウンメニューのイベントリスナーを設定する
-    document.getElementById("pinkColorSelect").addEventListener("change", function () {
-        changeColorSetting("pink", this.value, hlArray);
-    });
-    document.getElementById("blueColorSelect").addEventListener("change", function () {
-        changeColorSetting("blue", this.value, hlArray);
-    });
-    document.getElementById("yellowColorSelect").addEventListener("change", function () {
-        changeColorSetting("yellow", this.value, hlArray);
-    });
-    document.getElementById("orangeColorSelect").addEventListener("change", function () {
-        changeColorSetting("orange", this.value, hlArray);
-    });
+        // インデント対象色変更
+        document.getElementById("indentTargetColorSelect").addEventListener("change", function () {
+            indentTargetColor = this.value;
+            populateList(hlArray);
+        });
+
+        // インデントモードの切り替え
+        document.getElementById("changeIndentModeButton").addEventListener("click", function () {
+            isIndentModeActive = !isIndentModeActive;
+            this.textContent = isIndentModeActive ? "インデント無効" : "インデント有効";
+            populateList(hlArray);
+        });
+    }
 }
 
 async function fetchSequentially(initialUrl, hlArray) {
@@ -257,7 +332,7 @@ async function fetchSequentially(initialUrl, hlArray) {
             count++;
         }
 
-        rewriteHtmlTable(hlArray)
+        rewriteHtml(hlArray,'table')
     } catch (error) {
         console.error('Fetch error:', error);
     }
