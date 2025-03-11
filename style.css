@@ -13,3 +13,8 @@ table{
     min-width: 500px;  /* テーブルの最小幅を500pxに設定 */
     max-width: 60vw;   /* テーブルの最大幅をビューポートの80%に設定 */
 }
+#myList {
+    width: 600px; /* 横幅を 600px に指定 */
+    max-width: 100%; /* 横幅が画面からはみ出さないようにする */
+    margin: 0 auto; /*中央揃え*/
+}
