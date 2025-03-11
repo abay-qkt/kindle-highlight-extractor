@@ -14,8 +14,8 @@ let colorSettings = {
 // インデントの対象となる色 (デフォルトは "blue")
 let indentTargetColor = "blue";
 
-// インデントモードがアクティブかどうか (デフォルトは true)
-let isIndentModeActive = true;
+// インデントモードがアクティブかどうか (デフォルトは falseに変更)
+let isIndentModeActive = false;
 
 // 色の設定を変更する関数
 function changeColorSetting(colorName, textColor, hlArray) {
@@ -211,7 +211,8 @@ function rewriteHtml(hlArray, mode) {
         buttonString = `
         <div id="buttonArea">
         <button id="changeViewButton">テーブル表示へ</button>
-        <button id="changeIndentModeButton">${isIndentModeActive ? "インデント無効" : "インデント有効"}</button>
+         <label for="changeIndentModeCheckbox">インデント有効</label>
+        <input type="checkbox" id="changeIndentModeCheckbox" ${isIndentModeActive ? "checked" : ""}>
         </div>
         `;
         selectArea = `
@@ -301,9 +302,8 @@ function rewriteHtml(hlArray, mode) {
         });
 
         // インデントモードの切り替え
-        document.getElementById("changeIndentModeButton").addEventListener("click", function () {
-            isIndentModeActive = !isIndentModeActive;
-            this.textContent = isIndentModeActive ? "インデント無効" : "インデント有効";
+        document.getElementById("changeIndentModeCheckbox").addEventListener("change", function () {
+            isIndentModeActive = this.checked;
             populateList(hlArray);
         });
     }
