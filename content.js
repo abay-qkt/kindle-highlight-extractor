@@ -323,11 +323,10 @@ function rewriteHtml(hlArray, mode) {
 
     // 追加: Notionへ送信ボタンのイベントリスナー
     document.getElementById('sendNotionButton').addEventListener('click', async () => {
-        await loadNotionSetting();
         if(mode === 'table'){
-            await chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'table' });
+            chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'table' });
         }else{
-            await chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'list' });
+            chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'list' });
         }
     });
 }
@@ -365,23 +364,5 @@ if (asin) { // パラメータとしたasinが与えられている場合のみ�
     setLoadingModal();
     let hlArray = getHighLight(document);
     const initialUrl = getNexUrl(document)
-    //ストレージからデータ取得して、ハイライトの取得へ
-    loadNotionSetting().then(()=>{
-        fetchSequentially(initialUrl, hlArray);
-    })
-}
-
-// Notion関連の変数を追加
-let notionApiKey = '';
-let notionDatabaseId = '';
-
-//ストレージからデータ取得
-function loadNotionSetting(){
-    return new Promise((resolve) => {
-        chrome.storage.sync.get(['notionApiKey', 'notionDatabaseId'], (result) => {
-          notionApiKey = result.notionApiKey || '';
-          notionDatabaseId = result.notionDatabaseId || '';
-          resolve();
-        });
-      });
+    fetchSequentially(initialUrl, hlArray);
 }

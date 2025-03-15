@@ -84,31 +84,6 @@ async function sendToNotion(data, format) {
               if(ii>80){
                 break
               }
-              // //メモがある場合は、サブの箇条書きとして作成
-              // if (rowData.note) {
-              //     const noteArray = rowData.note.split("。");
-              //     let ii = 0
-              //     let hoge = true;
-              //     noteArray.forEach(noteText => {
-              //         if (noteText && hoge) {
-              //             children.push({
-              //                 'object': 'block',
-              //                 'type': 'bulleted_list_item',
-              //                 'bulleted_list_item': {
-              //                     'rich_text': [{
-              //                         'type': 'text',
-              //                         'text': { 'content': noteText + "。" }
-              //                     }]
-              //                 }
-              //             });
-              //             i++;
-              //             if(ii>80){
-              //               console.log("hohogehogeogehogehgoehgeo")
-              //               hoge=false
-              //             }
-              //         }
-              //     })
-              // }
           }
           const body = JSON.stringify({
               'parent': { 'database_id': notionDatabaseId },
@@ -123,10 +98,8 @@ async function sendToNotion(data, format) {
               throw new Error(`Notion API error: ${response.status} - ${JSON.stringify(errorData)}`);
           }
       }
-      // alert('Successfully sent to Notion!');
   } catch (error) {
       console.error('Error sending to Notion:', error);
-      // alert(`Error sending to Notion: ${error.message}`);
   }
 }
 
