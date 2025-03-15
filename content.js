@@ -1,3 +1,4 @@
+
 // URL からクエリパラメータを取得する
 const queryParams = new URLSearchParams(window.location.search);
 const asin = queryParams.get('asin');
@@ -187,10 +188,13 @@ function rewriteHtml(hlArray, mode) {
     let selectArea;
     let contentString;
 
+    let sendButtonString = `<button id="sendNotionButton">Notionへ送信</button>`;
+
     if (mode === 'table') {
         buttonString = `
         <div id="buttonArea">
         <button id="changeViewButton">箇条書き表示へ</button>
+        ${sendButtonString} 
         </div>`;
         selectArea = ''; // テーブル表示時はプルダウンなし
         contentString = `
@@ -211,6 +215,7 @@ function rewriteHtml(hlArray, mode) {
         buttonString = `
         <div id="buttonArea">
         <button id="changeViewButton">テーブル表示へ</button>
+        ${sendButtonString}
          <label for="changeIndentModeCheckbox">インデント有効</label>
         <input type="checkbox" id="changeIndentModeCheckbox" ${isIndentModeActive ? "checked" : ""}>
         </div>
@@ -307,6 +312,24 @@ function rewriteHtml(hlArray, mode) {
             populateList(hlArray);
         });
     }
+
+    document.getElementById("changeViewButton").addEventListener("click", function () {
+        if(mode === 'table'){
+            rewriteHtml(hlArray, 'list')
+        }else{
+            rewriteHtml(hlArray, 'table')
+        }
+    });
+
+    // 追加: Notionへ送信ボタンのイベントリスナー
+    document.getElementById('sendNotionButton').addEventListener('click', async () => {
+        await loadNotionSetting();
+        if(mode === 'table'){
+            await chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'table' });
+        }else{
+            await chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'list' });
+        }
+    });
 }
 
 async function fetchSequentially(initialUrl, hlArray) {
@@ -342,5 +365,23 @@ if (asin) { // パラメータとしたasinが与えられている場合のみ�
     setLoadingModal();
     let hlArray = getHighLight(document);
     const initialUrl = getNexUrl(document)
-    fetchSequentially(initialUrl, hlArray);
+    //ストレージからデータ取得して、ハイライトの取得へ
+    loadNotionSetting().then(()=>{
+        fetchSequentially(initialUrl, hlArray);
+    })
+}
+
+// Notion関連の変数を追加
+let notionApiKey = '';
+let notionDatabaseId = '';
+
+//ストレージからデータ取得
+function loadNotionSetting(){
+    return new Promise((resolve) => {
+        chrome.storage.sync.get(['notionApiKey', 'notionDatabaseId'], (result) => {
+          notionApiKey = result.notionApiKey || '';
+          notionDatabaseId = result.notionDatabaseId || '';
+          resolve();
+        });
+      });
 }

@@ -9,7 +9,8 @@
     "scripting"
   ],
   "host_permissions": [
-    "https://read.amazon.co.jp/notebook*"
+    "https://read.amazon.co.jp/notebook*",
+    "https://api.notion.com/"
   ],
   "icons": {
     "16": "icon/icon16x16.png",
@@ -28,5 +29,6 @@
       "css": ["style.css","loading.css"],
       "run_at": "document_end"
     }
-  ]
+  ],
+  "options_page": "options.html"
 }
