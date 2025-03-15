@@ -7,11 +7,10 @@ const asin = queryParams.get('asin');
 let colorSettings = {
     pink: "red",
     blue: "blue",
-    yellow: "black",
-    orange: "orange",
-    default: "black" // デフォルトは黒に変更
+    yellow: "yellow_background", //黄色はbackground
+    orange: "orange_background",//オレンジはbackground
+    default: "default" 
 };
-
 // インデントの対象となる色 (デフォルトは "blue")
 let indentTargetColor = "blue";
 
