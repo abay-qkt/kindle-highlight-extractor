@@ -7,8 +7,8 @@ const asin = queryParams.get('asin');
 let colorSettings = {
     pink: "red",
     blue: "blue",
-    yellow: "yellow_background", //黄色はbackground
-    orange: "orange_background",//オレンジはbackground
+    yellow: "black", 
+    orange: "orange", 
     default: "default"
 };
 
@@ -333,8 +333,8 @@ function rewriteHtml(hlArray, mode) {
         populateList(hlArray);
     }
     document.getElementById("changeViewButton").addEventListener("click", function () {
-        if (mode === 'table') {
-            rewriteHtml(hlArray, 'list')
+        if (mode === 'table') { // 現在のモードがテーブルモードなら
+            rewriteHtml(hlArray, 'list')  // リストモードに切り替える
         } else {
             rewriteHtml(hlArray, 'table')
         }

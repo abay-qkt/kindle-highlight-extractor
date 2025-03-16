@@ -20,8 +20,8 @@ function loadColorSettings() {
                 colorSettings: result.colorSettings || {
                     pink: "red",
                     blue: "blue",
-                    yellow: "yellow_background",
-                    orange: "orange_background",
+                    yellow: "yellow",
+                    orange: "orange",
                     default: "default"
                 },
                 h2TargetColor: result.h2TargetColor || "",
@@ -74,7 +74,7 @@ function createNotionListPageBody(data, colorSettings, h2TargetColor) {
                 {
                     'type': 'text',
                     'text': { 'content': rowData.text },
-                    'annotations': { 'color': notionColor === "yellow_background" || notionColor === "orange_background" ? "default" : notionColor } //背景色系の場合は、notionにないのでdefaultとする。
+                    'annotations': { 'color': notionColor === "black" ? "default" : notionColor } // notionにblackはなくdefaultが黒に相当。
                 }
             ];
             children.push({
