@@ -222,7 +222,7 @@ function rewriteHtml(hlArray, mode) {
         buttonString = `
         <div id="buttonArea">
         <button id="changeViewButton">箇条書き表示へ</button>
-  
+        ${sendButtonString}
         </div>
         <div id="colorFilterArea">
             <label><input type="checkbox" id="pinkFilter" checked>pink</label>
@@ -359,16 +359,12 @@ function rewriteHtml(hlArray, mode) {
             populateList(hlArray);
             chrome.storage.sync.set({ h2TargetColor: h2TargetColor }); // ストレージに保存
         });
-    }
 
-    // Notionへ送信ボタンのイベントリスナー
-    document.getElementById('sendNotionButton').addEventListener('click', async () => {
-        if (mode === 'table') {
-            chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'table' });
-        } else {
+        // Notionへ送信ボタンのイベントリスナー
+        document.getElementById('sendNotionButton').addEventListener('click', async () => {
             chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'list' });
-        }
-    });
+        });
+    }    
 }
 
 async function fetchSequentially(initialUrl, hlArray) {
