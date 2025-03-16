@@ -43,6 +43,20 @@ window.addEventListener('DOMContentLoaded', (event) => {
         }
     });
 });
+
+function getBookTitle(doc) {
+    // h3要素をすべて取得
+    const h3Elements = doc.querySelectorAll('h3');
+  
+    // h3要素がない場合はエラーメッセージを返す
+    if (!h3Elements || h3Elements.length === 0) {
+      return "タイトル取得失敗";
+    }
+  
+    // h3要素が一つ以上ある場合は、最初の要素のテキストコンテンツを返す
+    return h3Elements[0].textContent.trim();
+  }  
+
 function getHighLight(doc) {
     // 各ハイライトの情報を抽出
     let hl_array = [];
