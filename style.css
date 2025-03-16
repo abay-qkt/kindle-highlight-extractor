@@ -29,7 +29,14 @@ table{
     text-align: center;
     margin-bottom: 10px;
 }
-
+#h2SelectContainer{
+    display: flex; /* Flexboxを使用 */
+    justify-content: center; /* 水平方向中央揃え */
+    align-items: center; /* 垂直方向中央揃え */
+}
+#h2SelectContainer label {
+    margin-right: 10px; /* ラベルとセレクトボックスの間にスペース */
+}
 #colorFilterArea{
     text-align: center;
 }

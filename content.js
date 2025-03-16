@@ -253,15 +253,18 @@ function rewriteHtml(hlArray, mode) {
         ${sendButtonString}
         </div>
         `;
-        selectArea = `
-        <label for="h2TargetColorSelect">h2対象色:</label>
-        <select id="h2TargetColorSelect">
-            <option value="" ${h2TargetColor === null ? "selected" : ""}></option>
-            <option value="pink" ${h2TargetColor === "pink" ? "selected" : ""}>Pink</option>
-            <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>Blue</option>
-            <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>Yellow</option>
-            <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>Orange</option>
-        </select>
+        selectArea = `        
+        <div id="h2TargetColorArea">
+            <div id="h2SelectContainer">
+                <label for="h2TargetColorSelect">h2対象色:</label>
+                <select id="h2TargetColorSelect">
+                    <option value="" ${h2TargetColor === null ? "selected" : ""}></option>
+                    <option value="pink" ${h2TargetColor === "pink" ? "selected" : ""}>Pink</option>
+                    <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>Blue</option>
+                    <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>Yellow</option>
+                    <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>Orange</option>
+                </select>
+            </div>
         </div>
         <div id="colorSettingArea">
             <label for="pinkColorSelect">Pink:</label>
