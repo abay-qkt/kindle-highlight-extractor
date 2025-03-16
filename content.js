@@ -11,14 +11,9 @@ let colorSettings = {
     orange: "orange_background",//オレンジはbackground
     default: "default" 
 };
-// インデントの対象となる色 (デフォルトは "blue")
-let indentTargetColor = "blue";
-
-// インデントモードがアクティブかどうか (デフォルトは falseに変更)
-let isIndentModeActive = false;
 
 // h2要素にする対象の色 (デフォルトは "orange")
-let h2TargetColor = "orange";
+let h2TargetColor = "";
 
 // 色の設定を変更する関数
 function changeColorSetting(colorName, textColor, hlArray) {
@@ -82,95 +77,49 @@ function populateTable(data) {
 
 // 箇条書きリストに要素を追加する関数
 function populateList(data) {
-    let list = document.getElementById('myList');
-    list.innerHTML = ''; // リストをクリアする
+    let holePage = document.getElementById('holePage');
+    holePage.innerHTML = ''; // 一旦中身を空にする
 
-    // リスト全体のスタイルを調整する
-    list.style.listStyleType = "disc"; // デフォルトの箇条書きマークを表示
+    let currentlist = document.createElement('ul');
 
-    let subList = null; // サブリスト用の<ul>要素を初期化
-    let currentList = list; //現在のリスト要素を格納
-    let isSubList = false // 現在の行がsubListに当てはまるかどうか
     data.forEach((rowData) => {
-        // 色判定
-        let isTargetHighlight = rowData["color"] === indentTargetColor; // 現在の行がインデント対象色かどうか
-        //最上位層(青)でかつ、すでにsubListが作成されてる場合、subListを初期化する。
-        if (isIndentModeActive && isTargetHighlight && subList) {
-            if(h2TargetColor === indentTargetColor){
-                //もしh2TargetColorとindentTargetColorが一緒の場合、どちらもnullにする。
-                h2TargetColor = null;
-                indentTargetColor = null;
-                document.getElementById("h2TargetColorSelect").value = null;
-                document.getElementById("indentTargetColorSelect").value = null;
-            }
-            subList = null; // サブリストを初期化
-            isSubList = false; // subListに属さない
-        }
-        //最上位層(青)でないかつ、subListが作成されてない場合はsubListを作成する。
-        if(isIndentModeActive && !isTargetHighlight && !subList){
-            subList = document.createElement('ul'); // サブリストを作成する。
-            currentList.appendChild(subList);
-            isSubList = true;
-        }
-        let textElement = document.createElement('span');
-        textElement.textContent = rowData["text"];
-
         // h2要素にするかの判定
         let isTargeth2 = rowData["color"] === h2TargetColor; // 現在の行がh2対象色かどうか
-        if(isTargeth2){
-            //h2のとき、ulを切り替える
-            currentList = document.createElement('ul'); // h2用のulを作成
-            list.appendChild(currentList);
 
+        // テキスト要素の作成
+        textElement = document.createElement('span');
+        textElement.textContent = rowData["text"];
+
+        if(isTargeth2){ // h2対象色の場合
             let h2Element = document.createElement('h2');
-            h2Element.style.listStyle = 'none'; // h2のリストマークを削除
             h2Element.appendChild(textElement);
+            holePage.appendChild(h2Element);
+            if (rowData["note"]) {  // noteがある場合
+                holePage.appendChild(rowData["note"])
+            }
 
-        }else{
+            // 新たなリスト要素を作成し、次のループで使う
+            currentlist = document.createElement('ul');
+        }else{  // 通常のリスト
             let listItem = document.createElement('li');
             listItem.appendChild(textElement);
+            if (rowData["note"]) {  // noteがある場合字下げして追加
+                let noteList = document.createElement('ul'); 
+                let noteItem = document.createElement('li');
+                noteItem.textContent = rowData["note"];
+                noteList.appendChild(noteItem);
+                listItem.appendChild(noteList);
+            }
+            currentlist.appendChild(listItem);
+            
+            // 設定に基づいて文字色を設定する
+            if (colorSettings[rowData["color"]]) {
+                textElement.style.color = colorSettings[rowData["color"]];
+            } else {
+                textElement.style.color = colorSettings.default;
+            }
         }
-
-        // 設定に基づいて文字色を設定する
-        if (colorSettings[rowData["color"]]) {
-            textElement.style.color = colorSettings[rowData["color"]];
-        } else {
-            textElement.style.color = colorSettings.default;
-        }
-
-        let listItem = document.createElement('li');
-        listItem.appendChild(textElement);
-
-        if (rowData["note"]) {
-            let noteList = document.createElement('ul'); // メモを箇条書きにするための <ul> 要素
-            noteList.style.listStyleType = "circle"; // メモの箇条書きマークをcircleに変更
-            noteList.style.marginLeft = "40px"; // メモのインデント
-            noteList.style.marginTop = "5px"; // 上に少し余白を作る
-            let noteArray = rowData["note"].split("。");
-            noteArray.forEach(noteText => {
-                if (noteText) {
-                    let noteItem = document.createElement('li');
-                    noteItem.textContent = noteText + "。";
-                    noteList.appendChild(noteItem);
-                }
-            });
-
-            listItem.appendChild(noteList);
-        }
-
-        listItem.style.marginBottom = "5px"; // マージンを小さくする
-        listItem.style.padding = "10px";
-        if (subList && isSubList) {
-            //subListが作成済みであれば、currentListに追加する。
-            subList.appendChild(listItem);
-        }else{
-            currentList.appendChild(listItem);
-        }
-        //最上位層で、subListが作成されていたら、subListを初期化する。
-        if (isIndentModeActive && isTargetHighlight && subList && !isSubList) {
-            subList = null; // サブリストを初期化
-        }
-
+        holePage.appendChild(currentlist);
     });
 }
 
@@ -242,12 +191,9 @@ function rewriteHtml(hlArray, mode) {
         <div id="buttonArea">
         <button id="changeViewButton">テーブル表示へ</button>
         ${sendButtonString}
-         <label for="changeIndentModeCheckbox">インデント有効</label>
-        <input type="checkbox" id="changeIndentModeCheckbox" ${isIndentModeActive ? "checked" : ""} >
         </div>
         `;
         selectArea = `
-        <div id="indentTargetColorArea">
         <label for="h2TargetColorSelect">h2対象色:</label>
         <select id="h2TargetColorSelect">
             <option value="" ${h2TargetColor === null ? "selected" : ""}></option>
@@ -255,13 +201,6 @@ function rewriteHtml(hlArray, mode) {
             <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>Blue</option>
             <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>Yellow</option>
             <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>Orange</option>
-        </select>
-        <label for="indentTargetColorSelect">インデント対象色:</label>
-        <select id="indentTargetColorSelect">
-            <option value="pink">Pink</option>
-            <option value="blue" selected>Blue</option>
-            <option value="yellow">Yellow</option>
-            <option value="orange">Orange</option>
         </select>
         </div>
         <div id="colorSettingArea">
@@ -295,7 +234,7 @@ function rewriteHtml(hlArray, mode) {
             </select>
         </div>
         `;
-        contentString = `<ul id="myList"></ul>`;
+        contentString = `<div id="holePage"></div>`;
     }
 
     let parentString = `
@@ -334,26 +273,9 @@ function rewriteHtml(hlArray, mode) {
             changeColorSetting("orange", this.value, hlArray);
         });
 
-        // インデント対象色変更
-        document.getElementById("indentTargetColorSelect").addEventListener("change", function () {
-            indentTargetColor = this.value;
-            populateList(hlArray);
-        });
-
         // h2対象色変更
         document.getElementById("h2TargetColorSelect").addEventListener("change", function () {
             h2TargetColor = this.value;
-            if(h2TargetColor === indentTargetColor){
-                //もしh2TargetColorとindentTargetColorが一緒の場合、どちらもnullにする。
-                indentTargetColor = null;
-                document.getElementById("indentTargetColorSelect").value = null;
-            }
-            populateList(hlArray);
-        });
-
-        // インデントモードの切り替え
-        document.getElementById("changeIndentModeCheckbox").addEventListener("change", function () {
-            isIndentModeActive = this.checked;
             populateList(hlArray);
         });
     }
@@ -366,7 +288,7 @@ function rewriteHtml(hlArray, mode) {
         }
     });
 
-    // 追加: Notionへ送信ボタンのイベントリスナー
+    // Notionへ送信ボタンのイベントリスナー
     document.getElementById('sendNotionButton').addEventListener('click', async () => {
         if(mode === 'table'){
             chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'table' });

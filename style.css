@@ -14,15 +14,11 @@ table{
     max-width: 60vw;   /* テーブルの最大幅をビューポートの80%に設定 */
     margin: 0 auto; /*中央揃え*/
 }
-#myList {
+#holePage {
     width: 600px; /* 横幅を 600px に指定 */
     max-width: 100%; /* 横幅が画面からはみ出さないようにする */
     margin: 0 auto; /*中央揃え*/
     padding-left: 20px;
-}
-
-#myList ul{
-  padding-left: 20px;
 }
 
 #changeViewButton{
@@ -35,8 +31,4 @@ table{
 #buttonArea{
     text-align: center;
     margin-bottom: 10px;
-}
-#indentTargetColorArea{
-   margin-bottom: 10px;
-    text-align: center;
 }
