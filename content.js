@@ -225,10 +225,10 @@ function rewriteHtml(hlArray, mode) {
         ${sendButtonString}
         </div>
         <div id="colorFilterArea">
-            <label><input type="checkbox" id="pinkFilter" checked>Pink</label>
-            <label><input type="checkbox" id="blueFilter" checked>Blue</label>
-            <label><input type="checkbox" id="yellowFilter" checked>Yellow</label>
-            <label><input type="checkbox" id="orangeFilter" checked>Orange</label>
+            <label><input type="checkbox" id="pinkFilter" checked>pink</label>
+            <label><input type="checkbox" id="blueFilter" checked>blue</label>
+            <label><input type="checkbox" id="yellowFilter" checked>yellow</label>
+            <label><input type="checkbox" id="orangeFilter" checked>orange</label>
         </div>
         `;
         selectArea = ''; // テーブル表示時はプルダウンなし
@@ -259,10 +259,10 @@ function rewriteHtml(hlArray, mode) {
                 <label for="h2TargetColorSelect">h2対象色:</label>
                 <select id="h2TargetColorSelect">
                     <option value="" ${h2TargetColor === null ? "selected" : ""}></option>
-                    <option value="pink" ${h2TargetColor === "pink" ? "selected" : ""}>Pink</option>
-                    <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>Blue</option>
-                    <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>Yellow</option>
-                    <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>Orange</option>
+                    <option value="pink" ${h2TargetColor === "pink" ? "selected" : ""}>pink</option>
+                    <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>blue</option>
+                    <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>yellow</option>
+                    <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>orange</option>
                 </select>
             </div>
         </div>
