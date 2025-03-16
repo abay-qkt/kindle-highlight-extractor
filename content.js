@@ -267,28 +267,28 @@ function rewriteHtml(hlArray, mode) {
             </div>
         </div>
         <div id="colorSettingArea">
-            <label for="pinkColorSelect">Pink:</label>
+            <label for="pinkColorSelect">pink:</label>
             <select id="pinkColorSelect">
                 <option value="black">black</option>
                 <option value="red" selected>red</option>
                 <option value="blue">blue</option>
                 <option value="orange">orange</option>
             </select>
-            <label for="blueColorSelect">Blue:</label>
+            <label for="blueColorSelect">blue:</label>
             <select id="blueColorSelect">
                 <option value="black">black</option>
                 <option value="red">red</option>
                 <option value="blue" selected>blue</option>
                 <option value="orange">orange</option>
             </select>
-            <label for="yellowColorSelect">Yellow:</label>
+            <label for="yellowColorSelect">yellow:</label>
             <select id="yellowColorSelect">
                 <option value="black" selected>black</option>
                 <option value="red">red</option>
                 <option value="blue">blue</option>
                 <option value="orange">orange</option>
             </select>
-            <label for="orangeColorSelect">Orange:</label>
+            <label for="orangeColorSelect">orange:</label>
             <select id="orangeColorSelect">
                 <option value="black">black</option>
                 <option value="red">red</option>
