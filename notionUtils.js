@@ -122,8 +122,6 @@ function createNotionListPageBody(data, notionDatabaseId, isFirstPage, colorSett
     if (!isFirstPage) {
         for (const rowData of data) {
             const notionColor = colorSettings[rowData.color] || "default";
-            console.log("h2TargetColor: " + h2TargetColor);
-            console.log("rowData.color: " + rowData.color);
 
             if (rowData.color === h2TargetColor) { // h2要素の場合
                 
