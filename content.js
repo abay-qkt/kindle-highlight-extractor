@@ -17,6 +17,9 @@ let indentTargetColor = "blue";
 // インデントモードがアクティブかどうか (デフォルトは falseに変更)
 let isIndentModeActive = false;
 
+// h2要素にする対象の色 (デフォルトは "orange")
+let h2TargetColor = "orange";
+
 // 色の設定を変更する関数
 function changeColorSetting(colorName, textColor, hlArray) {
     colorSettings[colorName] = textColor;
@@ -86,24 +89,47 @@ function populateList(data) {
     list.style.listStyleType = "disc"; // デフォルトの箇条書きマークを表示
 
     let subList = null; // サブリスト用の<ul>要素を初期化
+    let currentList = list; //現在のリスト要素を格納
     let isSubList = false // 現在の行がsubListに当てはまるかどうか
     data.forEach((rowData) => {
         // 色判定
         let isTargetHighlight = rowData["color"] === indentTargetColor; // 現在の行がインデント対象色かどうか
         //最上位層(青)でかつ、すでにsubListが作成されてる場合、subListを初期化する。
         if (isIndentModeActive && isTargetHighlight && subList) {
+            if(h2TargetColor === indentTargetColor){
+                //もしh2TargetColorとindentTargetColorが一緒の場合、どちらもnullにする。
+                h2TargetColor = null;
+                indentTargetColor = null;
+                document.getElementById("h2TargetColorSelect").value = null;
+                document.getElementById("indentTargetColorSelect").value = null;
+            }
             subList = null; // サブリストを初期化
             isSubList = false; // subListに属さない
         }
         //最上位層(青)でないかつ、subListが作成されてない場合はsubListを作成する。
         if(isIndentModeActive && !isTargetHighlight && !subList){
             subList = document.createElement('ul'); // サブリストを作成する。
-            list.appendChild(subList);
+            currentList.appendChild(subList);
             isSubList = true;
         }
-        let listItem = document.createElement('li');
         let textElement = document.createElement('span');
         textElement.textContent = rowData["text"];
+
+        // h2要素にするかの判定
+        let isTargeth2 = rowData["color"] === h2TargetColor; // 現在の行がh2対象色かどうか
+        if(isTargeth2){
+            //h2のとき、ulを切り替える
+            currentList = document.createElement('ul'); // h2用のulを作成
+            list.appendChild(currentList);
+
+            let h2Element = document.createElement('h2');
+            h2Element.style.listStyle = 'none'; // h2のリストマークを削除
+            h2Element.appendChild(textElement);
+
+        }else{
+            let listItem = document.createElement('li');
+            listItem.appendChild(textElement);
+        }
 
         // 設定に基づいて文字色を設定する
         if (colorSettings[rowData["color"]]) {
@@ -112,6 +138,7 @@ function populateList(data) {
             textElement.style.color = colorSettings.default;
         }
 
+        let listItem = document.createElement('li');
         listItem.appendChild(textElement);
 
         if (rowData["note"]) {
@@ -134,10 +161,10 @@ function populateList(data) {
         listItem.style.marginBottom = "5px"; // マージンを小さくする
         listItem.style.padding = "10px";
         if (subList && isSubList) {
-            //subListが作成済みであれば、subListに追加する。
+            //subListが作成済みであれば、currentListに追加する。
             subList.appendChild(listItem);
         }else{
-            list.appendChild(listItem);
+            currentList.appendChild(listItem);
         }
         //最上位層で、subListが作成されていたら、subListを初期化する。
         if (isIndentModeActive && isTargetHighlight && subList && !isSubList) {
@@ -216,11 +243,19 @@ function rewriteHtml(hlArray, mode) {
         <button id="changeViewButton">テーブル表示へ</button>
         ${sendButtonString}
          <label for="changeIndentModeCheckbox">インデント有効</label>
-        <input type="checkbox" id="changeIndentModeCheckbox" ${isIndentModeActive ? "checked" : ""}>
+        <input type="checkbox" id="changeIndentModeCheckbox" ${isIndentModeActive ? "checked" : ""} >
         </div>
         `;
         selectArea = `
         <div id="indentTargetColorArea">
+        <label for="h2TargetColorSelect">h2対象色:</label>
+        <select id="h2TargetColorSelect">
+            <option value="" ${h2TargetColor === null ? "selected" : ""}></option>
+            <option value="pink" ${h2TargetColor === "pink" ? "selected" : ""}>Pink</option>
+            <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>Blue</option>
+            <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>Yellow</option>
+            <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>Orange</option>
+        </select>
         <label for="indentTargetColorSelect">インデント対象色:</label>
         <select id="indentTargetColorSelect">
             <option value="pink">Pink</option>
@@ -302,6 +337,17 @@ function rewriteHtml(hlArray, mode) {
         // インデント対象色変更
         document.getElementById("indentTargetColorSelect").addEventListener("change", function () {
             indentTargetColor = this.value;
+            populateList(hlArray);
+        });
+
+        // h2対象色変更
+        document.getElementById("h2TargetColorSelect").addEventListener("change", function () {
+            h2TargetColor = this.value;
+            if(h2TargetColor === indentTargetColor){
+                //もしh2TargetColorとindentTargetColorが一緒の場合、どちらもnullにする。
+                indentTargetColor = null;
+                document.getElementById("indentTargetColorSelect").value = null;
+            }
             populateList(hlArray);
         });
 
