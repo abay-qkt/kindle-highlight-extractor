@@ -222,7 +222,7 @@ function rewriteHtml(hlArray, mode) {
         buttonString = `
         <div id="buttonArea">
         <button id="changeViewButton">箇条書き表示へ</button>
-        ${sendButtonString}
+  
         </div>
         <div id="colorFilterArea">
             <label><input type="checkbox" id="pinkFilter" checked>pink</label>
