@@ -9,11 +9,14 @@ let colorSettings = {
     blue: "blue",
     yellow: "yellow_background", //黄色はbackground
     orange: "orange_background",//オレンジはbackground
-    default: "default" 
+    default: "default"
 };
 
-// h2要素にする対象の色 (デフォルトは "orange")
+// h2要素にする対象の色 (デフォルトは "")
 let h2TargetColor = "";
+
+// どの色がアクティブ（チェックされているか）を管理するオブジェクト
+let activeColors = {};
 
 // 色の設定を変更する関数
 function changeColorSetting(colorName, textColor, hlArray) {
@@ -47,15 +50,15 @@ window.addEventListener('DOMContentLoaded', (event) => {
 function getBookTitle(doc) {
     // h3要素をすべて取得
     const h3Elements = doc.querySelectorAll('h3');
-  
+
     // h3要素がない場合はエラーメッセージを返す
     if (!h3Elements || h3Elements.length === 0) {
-      return "タイトル取得失敗";
+        return "タイトル取得失敗";
     }
-  
+
     // h3要素が一つ以上ある場合は、最初の要素のテキストコンテンツを返す
     return h3Elements[0].textContent.trim();
-  }  
+}
 
 function getHighLight(doc) {
     // 各ハイライトの情報を抽出
@@ -84,30 +87,35 @@ function getHighLight(doc) {
 // テーブルに行を追加する関数
 function populateTable(data) {
     let table = document.getElementById('myTable').getElementsByTagName('tbody')[0];
+    table.innerHTML = ""; // テーブルをクリア
+
     data.forEach(rowData => {
-        let row = table.insertRow();
+        // フィルタリング：activeColorsに含まれる色のみ表示
+        if (activeColors[rowData["color"]]) {
+            let row = table.insertRow();
 
-        let cell_color = row.insertCell();
-        let cell_num = row.insertCell();
-        let cell_text = row.insertCell();
-        let cell_note = row.insertCell();
+            let cell_color = row.insertCell();
+            let cell_num = row.insertCell();
+            let cell_text = row.insertCell();
+            let cell_note = row.insertCell();
 
-        let num = rowData["num"];
-        let customUrlScheme = `kindle://book?action=open&asin=${asin}&location=${num}`;
-        let link = `<a href="${customUrlScheme}">${num}</a>`
-        cell_num.innerHTML = link;
+            let num = rowData["num"];
+            let customUrlScheme = `kindle://book?action=open&asin=${asin}&location=${num}`;
+            let link = `<a href="${customUrlScheme}">${num}</a>`
+            cell_num.innerHTML = link;
 
-        cell_text.textContent = rowData["text"];
-        cell_text.className = "text-content"; // 折り返し用のクラスを追加
+            cell_text.textContent = rowData["text"];
+            cell_text.className = "text-content"; // 折り返し用のクラスを追加
 
-        cell_note.textContent = rowData["note"];
-        cell_note.className = "text-content"; // 折り返し用のクラスを追加
+            cell_note.textContent = rowData["note"];
+            cell_note.className = "text-content"; // 折り返し用のクラスを追加
 
-        cell_color.textContent = rowData["color"];
-        cell_color.className = "text-content"; // 折り返し用のクラスを追加
+            cell_color.textContent = rowData["color"];
+            cell_color.className = "text-content"; // 折り返し用のクラスを追加
 
-        // 背景色を設定
-        cell_color.style.backgroundColor = rowData["color"];
+            // 背景色を設定
+            cell_color.style.backgroundColor = rowData["color"];
+        }
     });
 }
 
@@ -126,7 +134,7 @@ function populateList(data) {
         textElement = document.createElement('span');
         textElement.textContent = rowData["text"];
 
-        if(isTargeth2){ // h2対象色の場合
+        if (isTargeth2) { // h2対象色の場合
             let h2Element = document.createElement('h2');
             h2Element.appendChild(textElement);
             holePage.appendChild(h2Element);
@@ -136,18 +144,18 @@ function populateList(data) {
 
             // 新たなリスト要素を作成し、次のループで使う
             currentlist = document.createElement('ul');
-        }else{  // 通常のリスト
+        } else {  // 通常のリスト
             let listItem = document.createElement('li');
             listItem.appendChild(textElement);
             if (rowData["note"]) {  // noteがある場合字下げして追加
-                let noteList = document.createElement('ul'); 
+                let noteList = document.createElement('ul');
                 let noteItem = document.createElement('li');
                 noteItem.textContent = rowData["note"];
                 noteList.appendChild(noteItem);
                 listItem.appendChild(noteList);
             }
             currentlist.appendChild(listItem);
-            
+
             // 設定に基づいて文字色を設定する
             if (colorSettings[rowData["color"]]) {
                 textElement.style.color = colorSettings[rowData["color"]];
@@ -199,14 +207,30 @@ function rewriteHtml(hlArray, mode) {
     let selectArea;
     let contentString;
 
+    //アクティブカラーの初期化
+    activeColors = {
+        pink: true,
+        blue: true,
+        yellow: true,
+        orange: true,
+        default: true
+    };
+
     let sendButtonString = `<button id="sendNotionButton">Notionへ送信</button>`;
 
     if (mode === 'table') {
         buttonString = `
         <div id="buttonArea">
         <button id="changeViewButton">箇条書き表示へ</button>
-        ${sendButtonString} 
-        </div>`;
+        ${sendButtonString}
+        </div>
+        <div id="colorFilterArea">
+            <label><input type="checkbox" id="pinkFilter" checked>Pink</label>
+            <label><input type="checkbox" id="blueFilter" checked>Blue</label>
+            <label><input type="checkbox" id="yellowFilter" checked>Yellow</label>
+            <label><input type="checkbox" id="orangeFilter" checked>Orange</label>
+        </div>
+        `;
         selectArea = ''; // テーブル表示時はプルダウンなし
         contentString = `
         <table id="myTable">
@@ -283,13 +307,30 @@ function rewriteHtml(hlArray, mode) {
     document.body.innerHTML = parentString;
     if (mode === 'table') {
         populateTable(hlArray);
+         // チェックボックスのイベントリスナーを設定する(表モードの時のみイベント設定)
+        document.getElementById('pinkFilter').addEventListener('change', () => {
+            activeColors['pink'] = !activeColors['pink'];
+            populateTable(hlArray);
+        });
+        document.getElementById('blueFilter').addEventListener('change', () => {
+            activeColors['blue'] = !activeColors['blue'];
+            populateTable(hlArray);
+        });
+        document.getElementById('yellowFilter').addEventListener('change', () => {
+            activeColors['yellow'] = !activeColors['yellow'];
+            populateTable(hlArray);
+        });
+        document.getElementById('orangeFilter').addEventListener('change', () => {
+            activeColors['orange'] = !activeColors['orange'];
+            populateTable(hlArray);
+        });
     } else if (mode === 'list') {
         populateList(hlArray);
     }
     document.getElementById("changeViewButton").addEventListener("click", function () {
-        if(mode === 'table'){
+        if (mode === 'table') {
             rewriteHtml(hlArray, 'list')
-        }else{
+        } else {
             rewriteHtml(hlArray, 'table')
         }
     });
@@ -317,19 +358,11 @@ function rewriteHtml(hlArray, mode) {
         });
     }
 
-    document.getElementById("changeViewButton").addEventListener("click", function () {
-        if(mode === 'table'){
-            rewriteHtml(hlArray, 'list')
-        }else{
-            rewriteHtml(hlArray, 'table')
-        }
-    });
-
     // Notionへ送信ボタンのイベントリスナー
     document.getElementById('sendNotionButton').addEventListener('click', async () => {
-        if(mode === 'table'){
+        if (mode === 'table') {
             chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'table' });
-        }else{
+        } else {
             chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'list' });
         }
     });
@@ -358,7 +391,7 @@ async function fetchSequentially(initialUrl, hlArray) {
             count++;
         }
 
-        rewriteHtml(hlArray,'table')
+        rewriteHtml(hlArray, 'table')
     } catch (error) {
         console.error('Fetch error:', error);
     }
