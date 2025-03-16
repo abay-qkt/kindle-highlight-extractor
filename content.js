@@ -139,7 +139,9 @@ function populateList(data) {
             h2Element.appendChild(textElement);
             holePage.appendChild(h2Element);
             if (rowData["note"]) {  // noteがある場合
-                holePage.appendChild(rowData["note"])
+                note = document.createElement('span');
+                note.textContent = rowData["note"];
+                holePage.appendChild(note)
             }
 
             // 新たなリスト要素を作成し、次のループで使う
@@ -258,7 +260,7 @@ function rewriteHtml(hlArray, mode) {
             <div id="h2SelectContainer">
                 <label for="h2TargetColorSelect">h2対象色:</label>
                 <select id="h2TargetColorSelect">
-                    <option value="" ${h2TargetColor === null ? "selected" : ""}></option>
+                    <option value="" ${h2TargetColor === "" ? "selected" : ""}></option>
                     <option value="pink" ${h2TargetColor === "pink" ? "selected" : ""}>pink</option>
                     <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>blue</option>
                     <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>yellow</option>
