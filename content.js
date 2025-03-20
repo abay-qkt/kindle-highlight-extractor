@@ -28,25 +28,25 @@ function changeColorSetting(colorName, textColor, hlArray) {
     chrome.storage.sync.set({ colorSettings: colorSettings });
 }
 
-// 初回読み込み時
-window.addEventListener('DOMContentLoaded', (event) => {
-    // ストレージからカラー設定をロード
-    chrome.storage.sync.get(['colorSettings', 'h2TargetColor'], (result) => {
-        if (result.colorSettings) {
-            colorSettings = result.colorSettings;
-            // プルダウンを更新
-            document.getElementById("pinkColorSelect").value = colorSettings["pink"];
-            document.getElementById("blueColorSelect").value = colorSettings["blue"];
-            document.getElementById("yellowColorSelect").value = colorSettings["yellow"];
-            document.getElementById("orangeColorSelect").value = colorSettings["orange"];
-        }
-        if (result.h2TargetColor) {
-            h2TargetColor = result.h2TargetColor;
-            // プルダウンを更新
-            document.getElementById("h2TargetColorSelect").value = h2TargetColor;
-        }
-    });
-});
+// // 初回読み込み時
+// window.addEventListener('DOMContentLoaded', (event) => {
+//     // ストレージからカラー設定をロード
+//     chrome.storage.sync.get(['colorSettings', 'h2TargetColor'], (result) => {
+//         if (result.colorSettings) {
+//             colorSettings = result.colorSettings;
+//             // プルダウンを更新
+//             document.getElementById("pinkColorSelect").value = colorSettings["pink"];
+//             document.getElementById("blueColorSelect").value = colorSettings["blue"];
+//             document.getElementById("yellowColorSelect").value = colorSettings["yellow"];
+//             document.getElementById("orangeColorSelect").value = colorSettings["orange"];
+//         }
+//         if (result.h2TargetColor) {
+//             h2TargetColor = result.h2TargetColor;
+//             // プルダウンを更新
+//             document.getElementById("h2TargetColorSelect").value = h2TargetColor;
+//         }
+//     });
+// });
 
 function getBookTitle(doc) {
     // h3要素をすべて取得
@@ -218,6 +218,26 @@ function rewriteHtml(hlArray, mode) {
         orange: true,
         default: true
     };
+     
+    // ストレージからカラー設定をロード
+    chrome.storage.sync.get(['colorSettings', 'h2TargetColor'], (result) => {
+        if (result.colorSettings) {
+            colorSettings = result.colorSettings;
+            // プルダウンを更新
+            if (document.getElementById("pinkColorSelect")) {
+                document.getElementById("pinkColorSelect").value = colorSettings["pink"];
+                document.getElementById("blueColorSelect").value = colorSettings["blue"];
+                document.getElementById("yellowColorSelect").value = colorSettings["yellow"];
+                document.getElementById("orangeColorSelect").value = colorSettings["orange"];
+            }
+        }
+        if (result.h2TargetColor) {
+            h2TargetColor = result.h2TargetColor;
+            // プルダウンを更新
+            if (document.getElementById("h2TargetColorSelect"))
+                document.getElementById("h2TargetColorSelect").value = h2TargetColor;
+        }
+    });
 
     let sendButtonString = `<button id="sendNotionButton">Notionへ送信</button>`;
 
