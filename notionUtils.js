@@ -111,7 +111,7 @@ async function sendToNotion(data, format, title, asin) { // asin引数を追加
 
     if (!notionApiKey || !notionDatabaseId) {
         alert('Notion API Key and Database ID are not set. Please go to the extension options.');
-        return;
+        return false; // エラー時はfalseを返す
     }
 
     const headers = {
@@ -178,10 +178,11 @@ async function sendToNotion(data, format, title, asin) { // asin引数を追加
                 }
             }
         }
+        return true; // 成功時はtrueを返す
     } catch (error) {
         console.error('Error sending to Notion:', error);
+        return false; // エラー時はfalseを返す
     }
 }
-
 
 export { sendToNotion };

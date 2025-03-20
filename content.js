@@ -400,6 +400,40 @@ async function fetchSequentially(initialUrl, hlArray) {
     }
 }
 
+// 送信完了のポップアップを表示する関数
+function showSuccessPopup() {
+    const popup = document.createElement('div');
+    popup.id = 'success-popup';
+    popup.textContent = 'Notionへの送信が完了しました！';
+    popup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #4CAF50;
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+    `;
+    document.body.appendChild(popup);
+
+    // ポップアップを表示
+    setTimeout(() => {
+        popup.style.opacity = '1';
+    }, 10);
+
+    // 3秒後にポップアップを非表示にして削除
+    setTimeout(() => {
+        popup.style.opacity = '0';
+        setTimeout(() => {
+            document.body.removeChild(popup);
+        }, 500);
+    }, 3000);
+}
+
 if (asin) { // パラメータとしたasinが与えられている場合のみ実行(メモとハイライトのページでは実行されないようにする)
     setLoadingModal();
     bookTitle = getBookTitle(document);  // タイトル取得
@@ -407,3 +441,10 @@ if (asin) { // パラメータとしたasinが与えられている場合のみ�
     const initialUrl = getNexUrl(document);
     fetchSequentially(initialUrl, hlArray);
 }
+
+// メッセージ受信
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'notionSendComplete') {
+        showSuccessPopup();
+    }
+});
