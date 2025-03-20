@@ -105,7 +105,7 @@ function createNotionListPageBody(data, colorSettings, h2TargetColor) {
 }
 
 // Notion APIにデータを送信する関数
-async function sendToNotion(data, format) {
+async function sendToNotion(data, format, title, asin) { // asin引数を追加
     const { notionApiKey, notionDatabaseId } = await loadNotionSetting();
     const { colorSettings, h2TargetColor } = await loadColorSettings();
 
@@ -138,7 +138,20 @@ async function sendToNotion(data, format) {
             const initialPageBody = JSON.stringify({
                 'parent': { 'database_id': notionDatabaseId },
                 'properties': {
-                    '名前': { 'title': [{ 'text': { 'content': "testtitle" } }] }, // リストのタイトルは固定にする。
+                    '名前': { 'title': [{ 'text': { 'content': title } }] }, // タイトルを動的に設定
+                    'ASIN': { 'rich_text': [{ 'text': { 'content': asin } }] }, // ASINを追加
+                },
+                "cover": {
+                    "type": "external",
+                    "external": {
+                        "url": `https://images-na.ssl-images-amazon.com/images/P/${asin}.09.LZZZZZZZ`
+                    }
+                },
+                "icon": {
+                    "type": "external",
+                    "external": {
+                        "url": `https://images-na.ssl-images-amazon.com/images/P/${asin}.09.THUMBZZZ`
+                    }
                 },
                 'children': [], //一旦childrenを空にする。
             });

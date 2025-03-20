@@ -2,6 +2,7 @@
 // URL からクエリパラメータを取得する
 const queryParams = new URLSearchParams(window.location.search);
 const asin = queryParams.get('asin');
+let bookTitle = "タイトル";
 
 // 色情報と文字色の対応関係をオブジェクトで管理する (デフォルト設定)
 let colorSettings = {
@@ -364,7 +365,8 @@ function rewriteHtml(hlArray, mode) {
 
         // Notionへ送信ボタンのイベントリスナー
         document.getElementById('sendNotionButton').addEventListener('click', async () => {
-            chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'list' });
+            // メッセージにタイトルとASINを追加して送信
+            chrome.runtime.sendMessage({ action: 'sendToNotion', data: hlArray, format: 'list', title: bookTitle, asin: asin });
         });
     }    
 }
@@ -384,8 +386,8 @@ async function fetchSequentially(initialUrl, hlArray) {
             let result = await response.text();
             let doc = parser.parseFromString(result, 'text/html');
 
-            newHlArray = getHighLight(doc)
-            hlArray = hlArray.concat(newHlArray)
+            newHlArray = getHighLight(doc);
+            hlArray = hlArray.concat(newHlArray);
 
             // 次のURLをresultから決定する。URLがない場合はループを終了する。
             currentUrl = getNexUrl(doc);
@@ -400,7 +402,8 @@ async function fetchSequentially(initialUrl, hlArray) {
 
 if (asin) { // パラメータとしたasinが与えられている場合のみ実行(メモとハイライトのページでは実行されないようにする)
     setLoadingModal();
+    bookTitle = getBookTitle(document);  // タイトル取得
     let hlArray = getHighLight(document);
-    const initialUrl = getNexUrl(document)
+    const initialUrl = getNexUrl(document);
     fetchSequentially(initialUrl, hlArray);
 }
