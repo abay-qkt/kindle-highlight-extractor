@@ -440,6 +440,17 @@ if (asin) { // パラメータとしたasinが与えられている場合のみ�
     let hlArray = getHighLight(document);
     const initialUrl = getNexUrl(document);
     fetchSequentially(initialUrl, hlArray);
+} else {
+    let right_space = document.getElementsByClassName("a-column a-span3 a-text-right a-spacing-top-mini a-span-last")[0];
+    let jump_button = document.createElement("button"); // ボタン要素を作成
+    jump_button.textContent = "拡張ページへジャンプ";
+    jump_button.style.margin = "5px";
+    // クリックイベントをつける
+    jump_button.addEventListener("click", () => {
+        let selected_asin = document.getElementById('kp-notebook-annotations-asin').value;
+        window.open(`https://read.amazon.co.jp/notebook?asin=${selected_asin}&contentLimitState=&`, "_blank");
+    });
+    right_space.appendChild(jump_button);  // 要素に追加
 }
 
 // メッセージ受信
