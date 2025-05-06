@@ -23,6 +23,7 @@ let italicTargetColor = "";
 // どの色がアクティブ（チェックされているか）を管理するオブジェクト
 let activeColors = {};
 
+const FILTER_COLOR_NAMES = ['pink', 'blue', 'yellow', 'orange'];
 // 色の設定を変更する関数
 function changeColorSetting(colorName, textColor, hlArray) {
     colorSettings[colorName] = textColor;
@@ -217,19 +218,34 @@ function setLoadingModal() {
     document.body.insertAdjacentHTML('afterbegin', loadingModal);
 }
 
+// チェックボックスGUIの有効/無効を切り替える関数
+function setCheckboxGuiEnabled(enabled) {
+    const checkboxes = document.querySelectorAll('#colorFilterArea input[type="checkbox"]');
+    checkboxes.forEach(cb => {
+        cb.disabled = !enabled;
+    });
+    const filterArea = document.getElementById('colorFilterArea');
+    if (filterArea) {
+        filterArea.style.opacity = enabled ? '1' : '0.5';
+        // filterArea.style.pointerEvents = enabled ? 'auto' : 'none'; // 必要に応じて
+    }
+}
+
+let lastDoubleClickedColor = null; // テーブルモードのダブルクリック状態管理用
+
 // HTMLを上書きする関数
 function rewriteHtml(hlArray, mode) {
-    let buttonString;
-    let selectArea;
+    let baseButtonAreaHtml = `<div id="buttonArea">`; // ボタンや主要なコントロールを配置するエリア
+    let viewSpecificControls = ''; // モードによって変わるコントロール（チェックボックス、ラジオボタン、セレクトボックスなど）
     let contentString;
 
-    //アクティブカラーの初期化
+    // アクティブカラーの初期化 (テーブルモードのデフォルト状態)
     activeColors = {
         pink: true,
         blue: true,
         yellow: true,
         orange: true,
-        default: true
+        default: true // 'default' 色のアイテムも初期状態では表示対象
     };
      
     // ストレージからカラー設定をロード
@@ -265,19 +281,26 @@ function rewriteHtml(hlArray, mode) {
     let sendButtonString = `<button id="sendNotionButton">Notionへ送信</button>`;
 
     if (mode === 'table') {
-        buttonString = `
-        <div id="buttonArea">
-        <button id="changeViewButton">箇条書き表示へ</button>
+        lastDoubleClickedColor = null; // テーブル表示切り替え時にダブルクリック状態をリセット
+        baseButtonAreaHtml += `<button id="changeViewButton">箇条書き表示へ</button>`;
+        // sendButtonString はテーブルモードでは表示しない
 
-        </div>
-        <div id="colorFilterArea">
-            <label><input type="checkbox" id="pinkFilter" checked>pink</label>
-            <label><input type="checkbox" id="blueFilter" checked>blue</label>
-            <label><input type="checkbox" id="yellowFilter" checked>yellow</label>
-            <label><input type="checkbox" id="orangeFilter" checked>orange</label>
-        </div>
-        `;
-        selectArea = ''; // テーブル表示時はプルダウンなし
+        const colorFilterCheckboxesHtml = `
+        <div id="colorFilterArea" style="margin-bottom: 10px; text-align: center;">
+            ${FILTER_COLOR_NAMES.map(color =>
+                `<label style="margin-right: 5px;"><input type="checkbox" id="${color}Filter" data-color="${color}" checked>${color}</label>`
+            ).join('')}
+        </div>`;
+
+        const radioFiltersHtml = `
+        <div id="radioFilterArea" style="margin-bottom: 10px; text-align: center;">
+            <label><input type="radio" name="filterMode" value="checkbox" checked> Checkbox Mode</label>
+            ${FILTER_COLOR_NAMES.map(color =>
+                `<label style="margin-left: 10px;"><input type="radio" name="filterMode" value="${color}"> ${color.charAt(0).toUpperCase() + color.slice(1)} Only</label>`
+            ).join('')}
+        </div>`;
+        viewSpecificControls = colorFilterCheckboxesHtml + radioFiltersHtml;
+
         contentString = `
         <table id="myTable">
             <thead>
@@ -293,13 +316,9 @@ function rewriteHtml(hlArray, mode) {
         </table>
         `;
     } else if (mode === 'list') {
-        buttonString = `
-        <div id="buttonArea">
-        <button id="changeViewButton">テーブル表示へ</button>
-        ${sendButtonString}
-        </div>
-        `;
-        selectArea = `
+        baseButtonAreaHtml += `<button id="changeViewButton">テーブル表示へ</button>${sendButtonString}`;
+
+        let listModeSelects = `
         <div id="styleTargetColorContainer" style="display: flex; align-items: flex-end; justify-content: center; margin-bottom: 10px;">
             <div id="h2TargetColorArea" style="margin-right: 15px;">
                 <div id="h2SelectContainer">
@@ -369,39 +388,98 @@ function rewriteHtml(hlArray, mode) {
             </select>
         </div>
         `;
+        viewSpecificControls = listModeSelects;
         contentString = `<div id="holePage"></div>`;
     }
+    baseButtonAreaHtml += `</div>`; // ボタンエリアの終了
 
     let parentString = `
     <div id="parent">
-        ${buttonString}
-        ${selectArea}
+        ${baseButtonAreaHtml}
+        ${viewSpecificControls}
         ${contentString}
     </div>
     `;
     document.body.innerHTML = parentString;
+
     if (mode === 'table') {
         populateTable(hlArray);
-         // チェックボックスのイベントリスナーを設定する(表モードの時のみイベント設定)
-        document.getElementById('pinkFilter').addEventListener('change', () => {
-            activeColors['pink'] = !activeColors['pink'];
-            populateTable(hlArray);
+        setCheckboxGuiEnabled(true); // 初期状態はCheckbox ModeなのでGUI有効
+
+        // Radio button listeners
+        const radioButtons = document.querySelectorAll('input[name="filterMode"]');
+        radioButtons.forEach(radio => {
+            radio.addEventListener('change', (event) => {
+                const selectedMode = event.target.value;
+                if (selectedMode === 'checkbox') {
+                    setCheckboxGuiEnabled(true);
+                    // Restore activeColors based on current checkbox states
+                    FILTER_COLOR_NAMES.forEach(colorName => {
+                        const cb = document.getElementById(`${colorName}Filter`);
+                        if (cb) activeColors[colorName] = cb.checked;
+                    });
+                    activeColors.default = true; // Checkbox mode might show 'default' colored items
+                    lastDoubleClickedColor = null; // Reset dblclick state
+                } else { // A specific color is selected (e.g., "pink")
+                    setCheckboxGuiEnabled(false);
+                    FILTER_COLOR_NAMES.forEach(colorName => {
+                        activeColors[colorName] = (colorName === selectedMode);
+                    });
+                    activeColors.default = false; // Single color mode should not show 'default' items
+                }
+                populateTable(hlArray);
+            });
         });
-        document.getElementById('blueFilter').addEventListener('change', () => {
-            activeColors['blue'] = !activeColors['blue'];
-            populateTable(hlArray);
-        });
-        document.getElementById('yellowFilter').addEventListener('change', () => {
-            activeColors['yellow'] = !activeColors['yellow'];
-            populateTable(hlArray);
-        });
-        document.getElementById('orangeFilter').addEventListener('change', () => {
-            activeColors['orange'] = !activeColors['orange'];
-            populateTable(hlArray);
+
+        // Checkbox listeners (change and dblclick)
+        FILTER_COLOR_NAMES.forEach(colorName => {
+            const checkbox = document.getElementById(`${colorName}Filter`);
+            if (checkbox) {
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.disabled) return; // GUIが無効なら何もしない
+                    activeColors[colorName] = checkbox.checked;
+                    // If all checkboxes are unchecked, should 'default' still be true?
+                    // This depends on desired behavior. For now, 'default' is handled by radio buttons.
+                    populateTable(hlArray);
+                });
+
+                checkbox.addEventListener('dblclick', (event) => {
+                    if (checkbox.disabled) return; // GUIが無効なら何もしない
+                    event.preventDefault();
+
+                    if (lastDoubleClickedColor === colorName) {
+                        // 2回目のダブルクリック: 全てを選択状態にする
+                        FILTER_COLOR_NAMES.forEach(c => {
+                            const cb = document.getElementById(`${c}Filter`);
+                            if (cb) {
+                                cb.checked = true;
+                                activeColors[c] = true;
+                            }
+                        });
+                        activeColors.default = true; // 全選択なので default も表示対象に戻す
+                        lastDoubleClickedColor = null; // 状態をリセット
+                    } else {
+                        // 1回目のダブルクリック: この色だけを選択状態にする
+                        FILTER_COLOR_NAMES.forEach(c => {
+                            const cb = document.getElementById(`${c}Filter`);
+                            if (cb) {
+                                const isTargetColor = (c === colorName);
+                                cb.checked = isTargetColor;
+                                activeColors[c] = isTargetColor;
+                            }
+                        });
+                        activeColors.default = false; // 単一色選択なので default は非表示
+                        lastDoubleClickedColor = colorName; // 現在の色を記録
+                    }
+                    populateTable(hlArray);
+                });
+            }
         });
     } else if (mode === 'list') {
         populateList(hlArray);
     }
+
+    // --- 共通のイベントリスナー ---
     document.getElementById("changeViewButton").addEventListener("click", function () {
         if (mode === 'table') { // 現在のモードがテーブルモードなら
             rewriteHtml(hlArray, 'list')  // リストモードに切り替える
@@ -410,8 +488,7 @@ function rewriteHtml(hlArray, mode) {
         }
     });
 
-    // プルダウンメニューのイベントリスナーを設定する(リストモードの時のみイベント設定)
-    if (mode === 'list') {
+    if (mode === 'list') { // --- リストモード専用のイベントリスナー ---
         document.getElementById("pinkColorSelect").addEventListener("change", function () {
             changeColorSetting("pink", this.value, hlArray);
         });
