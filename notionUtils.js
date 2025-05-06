@@ -15,7 +15,7 @@ function loadNotionSetting() {
 // ストレージからカラー設定とh2ターゲットカラーを取得する関数
 function loadColorSettings() {
     return new Promise((resolve) => {
-        chrome.storage.sync.get(['colorSettings', 'h2TargetColor'], (result) => {
+        chrome.storage.sync.get(['colorSettings', 'h2TargetColor', 'boldTargetColor', 'italicTargetColor'], (result) => {
             resolve({
                 colorSettings: result.colorSettings || {
                     pink: "red",
@@ -25,13 +25,15 @@ function loadColorSettings() {
                     default: "default"
                 },
                 h2TargetColor: result.h2TargetColor || "",
+                boldTargetColor: result.boldTargetColor || "",
+                italicTargetColor: result.italicTargetColor || "",
             });
         });
     });
 }
 
 // リスト形式用のNotionページ作成用Body作成関数
-function createNotionListPageBody(data, colorSettings, h2TargetColor) {
+function createNotionListPageBody(data, colorSettings, h2TargetColor, boldTargetColor, italicTargetColor) {
     const children = [];
 
     // h2のタイトル作成関数
@@ -55,13 +57,23 @@ function createNotionListPageBody(data, colorSettings, h2TargetColor) {
             children.push(createH2Block(rowData.text));
 
             if (rowData.note) { // noteも表示
+                const noteAnnotations = {};
+                if (rowData.color === boldTargetColor && boldTargetColor !== "") {
+                    noteAnnotations.bold = true;
+                }
+                if (rowData.color === italicTargetColor && italicTargetColor !== "") {
+                    noteAnnotations.italic = true;
+                }
+
                 const noteRichText = [
                     {
                         'type': 'text',
-                        'text': { 'content': rowData.note }
+                        'text': { 'content': rowData.note },
+                        'annotations': noteAnnotations
                     }
                 ];
                 children.push({
+
                     'object': 'block',
                     'type': 'paragraph',
                     'paragraph': {
@@ -70,11 +82,19 @@ function createNotionListPageBody(data, colorSettings, h2TargetColor) {
                 });
             }
         } else { // 通常のリスト要素の場合
+            const annotations = { 'color': notionColor === "black" ? "default" : notionColor };
+            if (rowData.color === boldTargetColor && boldTargetColor !== "") {
+                annotations.bold = true;
+            }
+            if (rowData.color === italicTargetColor && italicTargetColor !== "") {
+                annotations.italic = true;
+            }
+
             const richText = [
                 {
                     'type': 'text',
                     'text': { 'content': rowData.text },
-                    'annotations': { 'color': notionColor === "black" ? "default" : notionColor } // notionにblackはなくdefaultが黒に相当。
+                    'annotations': annotations
                 }
             ];
             children.push({
@@ -85,11 +105,20 @@ function createNotionListPageBody(data, colorSettings, h2TargetColor) {
                 },
             });
             if (rowData.note) {
+                const noteAnnotations = { 'color': notionColor === "black" ? "default" : notionColor }; // Apply text color to note as well
+                if (rowData.color === boldTargetColor && boldTargetColor !== "") {
+                    noteAnnotations.bold = true;
+                }
+                if (rowData.color === italicTargetColor && italicTargetColor !== "") {
+                    noteAnnotations.italic = true;
+                }
+
                 const noteRichText = [
                     {
                         'type': 'text',
-                        'text': { 'content': "メモ：" + rowData.note }
-                    }
+                        'text': { 'content': "メモ：" + rowData.note }, // Notion adds "メモ：" prefix
+                        'annotations': noteAnnotations
+                    },
                 ];
                 children.push({
                     'object': 'block',
@@ -107,7 +136,7 @@ function createNotionListPageBody(data, colorSettings, h2TargetColor) {
 // Notion APIにデータを送信する関数
 async function sendToNotion(data, format, title, asin) { // asin引数を追加
     const { notionApiKey, notionDatabaseId } = await loadNotionSetting();
-    const { colorSettings, h2TargetColor } = await loadColorSettings();
+    const { colorSettings, h2TargetColor, boldTargetColor, italicTargetColor } = await loadColorSettings();
 
     if (!notionApiKey || !notionDatabaseId) {
         alert('Notion API Key and Database ID are not set. Please go to the extension options.');
@@ -164,7 +193,7 @@ async function sendToNotion(data, format, title, asin) { // asin引数を追加
             const pageId = initialPageData.id;
 
             // 全体のchildrenを取得
-            const allChildren = createNotionListPageBody(data, colorSettings, h2TargetColor);
+            const allChildren = createNotionListPageBody(data, colorSettings, h2TargetColor, boldTargetColor, italicTargetColor);
 
             // リスト形式の場合、100個ずつに分割して送信
             const chunkSize = 100;

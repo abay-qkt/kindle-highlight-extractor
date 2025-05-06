@@ -15,6 +15,10 @@ let colorSettings = {
 
 // h2要素にする対象の色 (デフォルトは "")
 let h2TargetColor = "";
+// 太字にする対象の色
+let boldTargetColor = "";
+// 斜体にする対象の色
+let italicTargetColor = "";
 
 // どの色がアクティブ（チェックされているか）を管理するオブジェクト
 let activeColors = {};
@@ -111,29 +115,58 @@ function populateList(data) {
         // h2要素にするかの判定
         let isTargeth2 = rowData["color"] === h2TargetColor; // 現在の行がh2対象色かどうか
 
-        // テキスト要素の作成
-        textElement = document.createElement('span');
-        textElement.textContent = rowData["text"];
+        let textContent = rowData["text"];
+        if (rowData["color"] === boldTargetColor && boldTargetColor !== "") {
+            textContent = `<strong>${textContent}</strong>`;
+        }
+        if (rowData["color"] === italicTargetColor && italicTargetColor !== "") {
+            textContent = `<em>${textContent}</em>`;
+        }
+
+        const textElement = document.createElement('span');
+        textElement.innerHTML = textContent; // textContentをinnerHTMLとして設定
 
         if (isTargeth2) { // h2対象色の場合
             let h2Element = document.createElement('h2');
             h2Element.appendChild(textElement);
             holePage.appendChild(h2Element);
             if (rowData["note"]) {  // noteがある場合
-                note = document.createElement('span');
-                note.textContent = rowData["note"];
-                holePage.appendChild(note)
-            }
+                let noteSpan = document.createElement('span');
+                let noteContent = rowData["note"];
 
+                if (rowData["color"] === boldTargetColor && boldTargetColor !== "") {
+                    noteContent = `<strong>${noteContent}</strong>`;
+                }
+                if (rowData["color"] === italicTargetColor && italicTargetColor !== "") {
+                    noteContent = `<em>${noteContent}</em>`;
+                }
+                noteSpan.innerHTML = noteContent;
+                holePage.appendChild(noteSpan);
+            }
             // 新たなリスト要素を作成し、次のループで使う
             currentlist = document.createElement('ul');
         } else {  // 通常のリスト
             let listItem = document.createElement('li');
-            listItem.appendChild(textElement);
+            listItem.appendChild(textElement); // textElementをlistItemに追加
+
             if (rowData["note"]) {  // noteがある場合字下げして追加
                 let noteList = document.createElement('ul');
                 let noteItem = document.createElement('li');
-                noteItem.textContent = rowData["note"];
+                let noteTextSpan = document.createElement('span');
+                let noteText = rowData["note"];
+
+                if (rowData["color"] === boldTargetColor && boldTargetColor !== "") {
+                    noteText = `<strong>${noteText}</strong>`;
+                }
+                if (rowData["color"] === italicTargetColor && italicTargetColor !== "") {
+                    noteText = `<em>${noteText}</em>`;
+                }
+                noteTextSpan.innerHTML = noteText;
+
+                // Apply color to note text span as well
+                noteTextSpan.style.color = colorSettings[rowData["color"]] ? colorSettings[rowData["color"]] : colorSettings.default;
+
+                noteItem.appendChild(noteTextSpan);
                 noteList.appendChild(noteItem);
                 listItem.appendChild(noteList);
             }
@@ -200,7 +233,7 @@ function rewriteHtml(hlArray, mode) {
     };
      
     // ストレージからカラー設定をロード
-    chrome.storage.sync.get(['colorSettings', 'h2TargetColor'], (result) => {
+    chrome.storage.sync.get(['colorSettings', 'h2TargetColor', 'boldTargetColor', 'italicTargetColor'], (result) => {
         if (result.colorSettings) {
             colorSettings = result.colorSettings;
             // プルダウンを更新
@@ -216,6 +249,16 @@ function rewriteHtml(hlArray, mode) {
             // プルダウンを更新
             if (document.getElementById("h2TargetColorSelect"))
                 document.getElementById("h2TargetColorSelect").value = h2TargetColor;
+        }
+        if (result.boldTargetColor) {
+            boldTargetColor = result.boldTargetColor;
+            if (document.getElementById("boldTargetColorSelect"))
+                document.getElementById("boldTargetColorSelect").value = boldTargetColor;
+        }
+        if (result.italicTargetColor) {
+            italicTargetColor = result.italicTargetColor;
+            if (document.getElementById("italicTargetColorSelect"))
+                document.getElementById("italicTargetColorSelect").value = italicTargetColor;
         }
     });
 
@@ -266,6 +309,30 @@ function rewriteHtml(hlArray, mode) {
                     <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>blue</option>
                     <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>yellow</option>
                     <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>orange</option>
+                </select>
+            </div>
+        </div>
+        <div id="boldTargetColorArea">
+            <div id="boldSelectContainer">
+                <label for="boldTargetColorSelect">太字対象色:</label>
+                <select id="boldTargetColorSelect">
+                    <option value="" ${boldTargetColor === "" ? "selected" : ""}></option>
+                    <option value="pink" ${boldTargetColor === "pink" ? "selected" : ""}>pink</option>
+                    <option value="blue" ${boldTargetColor === "blue" ? "selected" : ""}>blue</option>
+                    <option value="yellow" ${boldTargetColor === "yellow" ? "selected" : ""}>yellow</option>
+                    <option value="orange" ${boldTargetColor === "orange" ? "selected" : ""}>orange</option>
+                </select>
+            </div>
+        </div>
+        <div id="italicTargetColorArea">
+            <div id="italicSelectContainer">
+                <label for="italicTargetColorSelect">斜体対象色:</label>
+                <select id="italicTargetColorSelect">
+                    <option value="" ${italicTargetColor === "" ? "selected" : ""}></option>
+                    <option value="pink" ${italicTargetColor === "pink" ? "selected" : ""}>pink</option>
+                    <option value="blue" ${italicTargetColor === "blue" ? "selected" : ""}>blue</option>
+                    <option value="yellow" ${italicTargetColor === "yellow" ? "selected" : ""}>yellow</option>
+                    <option value="orange" ${italicTargetColor === "orange" ? "selected" : ""}>orange</option>
                 </select>
             </div>
         </div>
@@ -361,6 +428,20 @@ function rewriteHtml(hlArray, mode) {
             h2TargetColor = this.value;
             populateList(hlArray);
             chrome.storage.sync.set({ h2TargetColor: h2TargetColor }); // ストレージに保存
+        });
+
+        // Bold color change
+        document.getElementById("boldTargetColorSelect").addEventListener("change", function () {
+            boldTargetColor = this.value;
+            populateList(hlArray);
+            chrome.storage.sync.set({ boldTargetColor: boldTargetColor });
+        });
+
+        // Italic color change
+        document.getElementById("italicTargetColorSelect").addEventListener("change", function () {
+            italicTargetColor = this.value;
+            populateList(hlArray);
+            chrome.storage.sync.set({ italicTargetColor: italicTargetColor });
         });
 
         // Notionへ送信ボタンのイベントリスナー
