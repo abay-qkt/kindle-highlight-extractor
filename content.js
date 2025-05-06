@@ -299,41 +299,43 @@ function rewriteHtml(hlArray, mode) {
         ${sendButtonString}
         </div>
         `;
-        selectArea = `        
-        <div id="h2TargetColorArea">
-            <div id="h2SelectContainer">
-                <label for="h2TargetColorSelect">h2対象色:</label>
-                <select id="h2TargetColorSelect">
-                    <option value="" ${h2TargetColor === "" ? "selected" : ""}></option>
-                    <option value="pink" ${h2TargetColor === "pink" ? "selected" : ""}>pink</option>
-                    <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>blue</option>
-                    <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>yellow</option>
-                    <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>orange</option>
-                </select>
+        selectArea = `
+        <div id="styleTargetColorContainer" style="display: flex; align-items: flex-end; justify-content: center; margin-bottom: 10px;">
+            <div id="h2TargetColorArea" style="margin-right: 15px;">
+                <div id="h2SelectContainer">
+                    <label for="h2TargetColorSelect">h2対象色:</label>
+                    <select id="h2TargetColorSelect">
+                        <option value="" ${h2TargetColor === "" ? "selected" : ""}></option>
+                        <option value="pink" ${h2TargetColor === "pink" ? "selected" : ""}>pink</option>
+                        <option value="blue" ${h2TargetColor === "blue" ? "selected" : ""}>blue</option>
+                        <option value="yellow" ${h2TargetColor === "yellow" ? "selected" : ""}>yellow</option>
+                        <option value="orange" ${h2TargetColor === "orange" ? "selected" : ""}>orange</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div id="boldTargetColorArea">
-            <div id="boldSelectContainer">
-                <label for="boldTargetColorSelect">太字対象色:</label>
-                <select id="boldTargetColorSelect">
-                    <option value="" ${boldTargetColor === "" ? "selected" : ""}></option>
-                    <option value="pink" ${boldTargetColor === "pink" ? "selected" : ""}>pink</option>
-                    <option value="blue" ${boldTargetColor === "blue" ? "selected" : ""}>blue</option>
-                    <option value="yellow" ${boldTargetColor === "yellow" ? "selected" : ""}>yellow</option>
-                    <option value="orange" ${boldTargetColor === "orange" ? "selected" : ""}>orange</option>
-                </select>
+            <div id="boldTargetColorArea" style="margin-right: 15px;">
+                <div id="boldSelectContainer">
+                    <label for="boldTargetColorSelect">太字対象色:</label>
+                    <select id="boldTargetColorSelect">
+                        <option value="" ${boldTargetColor === "" ? "selected" : ""}></option>
+                        <option value="pink" ${boldTargetColor === "pink" ? "selected" : ""}>pink</option>
+                        <option value="blue" ${boldTargetColor === "blue" ? "selected" : ""}>blue</option>
+                        <option value="yellow" ${boldTargetColor === "yellow" ? "selected" : ""}>yellow</option>
+                        <option value="orange" ${boldTargetColor === "orange" ? "selected" : ""}>orange</option>
+                    </select>
+                </div>
             </div>
-        </div>
-        <div id="italicTargetColorArea">
-            <div id="italicSelectContainer">
-                <label for="italicTargetColorSelect">斜体対象色:</label>
-                <select id="italicTargetColorSelect">
-                    <option value="" ${italicTargetColor === "" ? "selected" : ""}></option>
-                    <option value="pink" ${italicTargetColor === "pink" ? "selected" : ""}>pink</option>
-                    <option value="blue" ${italicTargetColor === "blue" ? "selected" : ""}>blue</option>
-                    <option value="yellow" ${italicTargetColor === "yellow" ? "selected" : ""}>yellow</option>
-                    <option value="orange" ${italicTargetColor === "orange" ? "selected" : ""}>orange</option>
-                </select>
+            <div id="italicTargetColorArea">
+                <div id="italicSelectContainer">
+                    <label for="italicTargetColorSelect">斜体対象色:</label>
+                    <select id="italicTargetColorSelect">
+                        <option value="" ${italicTargetColor === "" ? "selected" : ""}></option>
+                        <option value="pink" ${italicTargetColor === "pink" ? "selected" : ""}>pink</option>
+                        <option value="blue" ${italicTargetColor === "blue" ? "selected" : ""}>blue</option>
+                        <option value="yellow" ${italicTargetColor === "yellow" ? "selected" : ""}>yellow</option>
+                        <option value="orange" ${italicTargetColor === "orange" ? "selected" : ""}>orange</option>
+                    </select>
+                </div>
             </div>
         </div>
         <div id="colorSettingArea">
